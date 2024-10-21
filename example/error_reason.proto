@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package example;
+
+import "errors/errors.proto";
+
+option go_package = "github.com/fzf-labs/protoc-gen-go-errors/v2/example;example";
+
+enum ErrorReason {
+  option (errors.default_code) = 500;
+  option (errors.default_message) = "UNKNOWN";
+  option (errors.default_i18n) = {
+    zh_CN: "未知错误"
+    en_US: "Unknown error"
+  };
+
+  BAD_REQUEST = 0 [(errors.code) = 400, (errors.message) = "BAD_REQUEST", (errors.i18n) = {
+    zh_CN: "错误的请求"
+    en_US: "Bad request"
+  }];
+  UNAUTHORIZED = 1 [(errors.code) = 401, (errors.message) = "UNAUTHORIZED", (errors.i18n) = {
+    zh_CN: "未经授权"
+    en_US: "Unauthorized"
+  }];
+  FORBIDDEN = 2 [(errors.code) = 403, (errors.message) = "FORBIDDEN", (errors.i18n) = {
+    zh_CN: "禁止访问"
+    en_US: "Forbidden"
+  }];
+  NOT_FOUND = 3 [(errors.code) = 404, (errors.message) = "NOT_FOUND", (errors.i18n) = {
+    zh_CN: "资源未找到"
+    en_US: "Not found"
+  }];
+  METHOD_NOT_ALLOWED = 4 [(errors.code) = 405, (errors.message) = "METHOD_NOT_ALLOWED", (errors.i18n) = {
+    zh_CN: "方法不允许"
+    en_US: "Method not allowed"
+  }];
+  REQUEST_TIMEOUT = 5 [(errors.code) = 408, (errors.message) = "REQUEST_TIMEOUT", (errors.i18n) = {
+    zh_CN: "请求超时"
+    en_US: "Request timeout"
+  }];
+  CONFLICT = 6 [(errors.code) = 409, (errors.message) = "CONFLICT", (errors.i18n) = {
+    zh_CN: "资源冲突"
+    en_US: "Conflict"
+  }];
+  INTERNAL_SERVER_ERROR = 7 [(errors.code) = 500, (errors.message) = "INTERNAL_SERVER_ERROR", (errors.i18n) = {
+    zh_CN: "内部服务器错误"
+    en_US: "Internal server error"
+  }];
+  NOT_IMPLEMENTED = 8 [(errors.code) = 501, (errors.message) = "NOT_IMPLEMENTED", (errors.i18n) = {
+    zh_CN: "未实现"
+    en_US: "Not implemented"
+  }];
+  BAD_GATEWAY = 9 [(errors.code) = 502, (errors.message) = "BAD_GATEWAY", (errors.i18n) = {
+    zh_CN: "错误的网关"
+    en_US: "Bad gateway"
+  }];
+  SERVICE_UNAVAILABLE = 10 [(errors.code) = 503, (errors.message) = "SERVICE_UNAVAILABLE", (errors.i18n) = {
+    zh_CN: "服务不可用"
+    en_US: "Service unavailable"
+  }];
+  GATEWAY_TIMEOUT = 11 [(errors.code) = 504, (errors.message) = "GATEWAY_TIMEOUT", (errors.i18n) = {
+    zh_CN: "网关超时"
+    en_US: "Gateway timeout"
+  }];
+}
