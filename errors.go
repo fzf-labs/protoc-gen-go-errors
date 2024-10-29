@@ -13,8 +13,10 @@ import (
 )
 
 const (
-	errorsPackage = protogen.GoImportPath("github.com/fzf-labs/protoc-gen-go-errors/v2/errors")
-	fmtPackage    = protogen.GoImportPath("fmt")
+	errorsPackage  = protogen.GoImportPath("github.com/go-kratos/kratos/v2/errors")
+	fmtPackage     = protogen.GoImportPath("fmt")
+	runtimePackage = protogen.GoImportPath("runtime")
+	strconvPackage = protogen.GoImportPath("strconv")
 )
 
 var enCases = cases.Title(language.AmericanEnglish, cases.NoLower)
@@ -31,6 +33,8 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) *protogen.Generated
 	g.P("package ", file.GoPackageName)
 	g.P()
 	g.QualifiedGoIdent(fmtPackage.Ident(""))
+	g.QualifiedGoIdent(runtimePackage.Ident(""))
+	g.QualifiedGoIdent(strconvPackage.Ident(""))
 	generateFileContent(gen, file, g)
 	return g
 }
@@ -45,7 +49,7 @@ func generateFileContent(gen *protogen.Plugin, file *protogen.File, g *protogen.
 	g.P("// is compatible with the kratos package it is being compiled against.")
 	g.P("const _ = ", errorsPackage.Ident("SupportPackageIsVersion1"))
 	g.P()
-	g.P("type Error struct {\n\tcode    int\n\treason  string\n\tmessage string\n\ti18n    map[string]string\n\terr     error\n\targs    []interface{}\n\tlang    string\n}\n\nfunc (e *Error) getFileLine() string {\n\t_, file, line, ok := runtime.Caller(2)\n\tif !ok {\n\t\treturn \"\"\n\t}\n\treturn file + \":\" + strconv.Itoa(line)\n}\n\nfunc (e *Error) WithError(err error) *Error {\n\te.err = err\n\treturn e\n}\n\nfunc (e *Error) WithFmtMsg(args ...interface{}) *Error {\n\te.args = args\n\treturn e\n}\n\nfunc (e *Error) WithI18N(lang string) *Error {\n\te.lang = lang\n\treturn e\n}\n\nfunc (e *Error) Error() *errors.Error {\n\tmetadata := map[string]string{}\n\tif e.err != nil {\n\t\tmetadata[\"cause\"] = e.err.Error()\n\t}\n\tmetadata[\"line\"] = e.getFileLine()\n\tmessage := e.message\n\tif e.lang != \"\" {\n\t\tif _, ok := e.i18n[e.lang]; ok {\n\t\t\tmessage = e.i18n[e.lang]\n\t\t}\n\t}\n\tif len(e.args) > 0 {\n\t\tmessage = fmt.Sprintf(message, e.args...)\n\t}\n\treturn errors.New(e.code, e.reason, message).WithMetadata(metadata)\n}")
+	g.P("type ErrorReasonErrors struct {\n\tcode    int\n\treason  string\n\tmessage string\n\ti18n    map[string]string\n\terr     error\n\targs    []interface{}\n\tlang    string\n\tline    string\n}\n\nfunc (e *ErrorReasonErrors) Error() *errors.Error {\n\tmetadata := map[string]string{}\n\tif e.err != nil {\n\t\tmetadata[\"cause\"] = e.err.Error()\n\t}\n\tif e.line != \"\" {\t\n\t\tmetadata[\"line\"] = e.line\n\t}\n\tmessage := e.message\n\tif e.lang != \"\" {\n\t\tif _, ok := e.i18n[e.lang]; ok {\n\t\t\tmessage = e.i18n[e.lang]\n\t\t}\n\t}\n\tif len(e.args) > 0 {\n\t\tmessage = fmt.Sprintf(message, e.args...)\n\t}\n\treturn errors.New(e.code, e.reason, message).WithMetadata(metadata)\n}\n\ntype Option func(gen *ErrorReasonErrors)\n\nfunc WithError(err error) Option {\n\treturn func(e *ErrorReasonErrors) {\n\t\te.err = err\n\t}\n}\n\nfunc WithFmtMsg(args ...interface{}) Option {\n\treturn func(e *ErrorReasonErrors) {\n\t\te.args = args\n\t}\n}\n\nfunc WithLine() Option {\n\tvar fileLine string\n\t_, file, line, ok := runtime.Caller(2)\n\tif ok {\n\t\tfileLine = file + \":\" + strconv.Itoa(line)\n\t}\n\treturn func(e *ErrorReasonErrors) {\n\t\te.line = fileLine\n\t}\n}\n\nfunc WithI18N(lang string) Option {\n\treturn func(e *ErrorReasonErrors) {\n\t\te.lang = lang\n\t}\n}")
 	g.P()
 	index := 0
 	for _, enum := range file.Enums {
